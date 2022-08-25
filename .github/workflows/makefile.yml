@@ -1,0 +1,40 @@
+name: Makefile CI
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: self-hosted
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Run check
+      run: sudo make check
+    
+    - name: Run clean
+      run: sudo make clean
+      
+    - name: Do checkout
+      run: sudo make checkout
+      
+    - name: Build packages
+      run: sudo make packages
+
+    - name: Build update
+      run: sudo make update
+
+    - name: Build iso
+      run: sudo make iso
+      
+  cleanup:
+    if: always()
+    needs: [build]
+    runs-on: self-hosted
+    steps:
+    - name: Run clean
+      run: sudo make clean
