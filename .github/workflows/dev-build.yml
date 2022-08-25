@@ -1,5 +1,4 @@
-name: Makefile CI
-
+name: TrueNAS SCALE Developer Build
 on:
   push:
     branches: [ "master" ]
@@ -7,29 +6,28 @@ on:
 jobs:
 
   build:
-
     runs-on: self-hosted
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Run check
+    - name: Check
       run: sudo make check
     
-    - name: Run clean
+    - name: Clean
       run: sudo make clean
       
-    - name: Do checkout
+    - name: Git Checkout
       run: sudo make checkout
       
-    - name: Build packages
+    - name: Build Packages
       run: sudo make packages
 
-    - name: Build update
+    - name: Build Update File
       run: sudo make update
 
-    - name: Build iso
-      run: sudo make iso
+    - name: Build ISO
+      run: sudo make iso      
       
   cleanup:
     if: always()
