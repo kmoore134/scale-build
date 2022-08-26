@@ -28,36 +28,34 @@ jobs:
 
     - name: Build ISO
       run: sudo make iso 
-      
-    - name: Upload Artifacts
-      uses: jakejarvis/s3-sync-action@master
+    
+    - name: Stage Artifacts
       if: success()
-      with:
-        args: --follow-symlinks --delete
-      env:
-        AWS_S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
-        AWS_S3_BUCKET: 'truenas-github'
-        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
-        SOURCE_DIR: |
-           './tmp/release'
-           './tmp/pkgdir'
-           './logs'
-        DEST_DIR: '/bluefin-latest/'
-        
-    - name: Upload Failed Logs
-      uses: jakejarvis/s3-sync-action@master
+      run: |
+           sudo rm -rf artifacts || true
+           sudo mkdir -p artifacts/packages
+           sudo mv tmp/release artifacts/release
+           sudo mv logs artifacts/logs
+           sudo mv tmp/pkgdir artifacts/packages
+
+    - name: Stage Failure Logs
       if: failure()
-      with:
-        args: --follow-symlinks --delete
+      run: |
+           sudo rm -rf artifacts || true
+           sudo mkdir -p artifacts/packages
+           sudo mv logs artifacts/logs
+   
+    - name: Upload Artifacts
+      if: always()
+      uses: koraykoska/s3-upload-github-action@master
       env:
-        AWS_S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
-        AWS_S3_BUCKET: 'truenas-github'
-        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
-        SOURCE_DIR: './logs'
-        DEST_DIR: '/bluefin-latest/'
-     
+        FILE: ./artifacts/
+        S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
+        S3_BUCKET: 'truenas-github'
+        S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+        S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+
+             
   cleanup:
     if: always()
     needs: [build]
