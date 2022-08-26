@@ -29,8 +29,8 @@ jobs:
       run: sudo make iso 
       
     - name: Upload Artifacts
-    - uses: jakejarvis/s3-sync-action@master
       if: success()
+    - uses: jakejarvis/s3-sync-action@master
       with:
         args: --follow-symlinks --delete
       env:
@@ -45,8 +45,8 @@ jobs:
         DEST_DIR: '/bluefin-latest/'
         
     - name: Upload Failed Logs
+      if: failure()
     - uses: jakejarvis/s3-sync-action@master
-      if: success()
       with:
         args: --follow-symlinks --delete
       env:
