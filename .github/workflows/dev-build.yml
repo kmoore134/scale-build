@@ -4,19 +4,18 @@ on:
     branches: [ "master" ]
 
 jobs:
-
   build:
     runs-on: self-hosted
-
     steps:
+
+    - name: Clean
+      run: sudo rm -rf ./scale-build
+
     - uses: actions/checkout@v3
 
     - name: Check
       run: sudo make check
-    
-    - name: Clean
-      run: sudo make clean
-      
+         
     - name: Git Checkout
       run: sudo make checkout
       
@@ -27,8 +26,37 @@ jobs:
       run: sudo make update
 
     - name: Build ISO
-      run: sudo make iso      
+      run: sudo make iso 
       
+    - name: Upload Artifacts
+    - uses: jakejarvis/s3-sync-action@master
+      if: success()
+      with:
+        args: --follow-symlinks --delete
+      env:
+        AWS_S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
+        AWS_S3_BUCKET: 'truenas-github'
+        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+        SOURCE_DIR: |
+           './tmp/release'
+           './tmp/pkgdir'
+           './logs'
+        DEST_DIR: '/bluefin-latest/'
+        
+    - name: Upload Failed Logs
+    - uses: jakejarvis/s3-sync-action@master
+      if: success()
+      with:
+        args: --follow-symlinks --delete
+      env:
+        AWS_S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
+        AWS_S3_BUCKET: 'truenas-github'
+        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+        SOURCE_DIR: './logs'
+        DEST_DIR: '/bluefin-latest/'
+     
   cleanup:
     if: always()
     needs: [build]
