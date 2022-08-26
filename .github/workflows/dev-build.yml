@@ -9,7 +9,7 @@ jobs:
     steps:
 
     - name: Clean
-      run: sudo rm -rf ./scale-build
+      run: sudo rm -rf .
       
     - name: Checkout Source
       uses: actions/checkout@v3
